@@ -8,52 +8,47 @@ import (
 
 var (
 	in      []int64
-	mul, im [3]int64
-	ind     [3]int64
+	sMul, dMul [3]int64 // последовательность и приращение последовательности
 	count   int64
 	result  int64
 	lastseq int
 )
 
 func NextNum() int64 {
-	// в mul текущие претенденты на число
+	// в sMul текущие претенденты на число
 	// ищем минимальный и генерим следующий
 	var res int64
-	if mul[0] < mul[1] && mul[0] < mul[2] {
-		res = mul[0]
-		ind[0]++
+	if sMul[0] < sMul[1] && sMul[0] < sMul[2] {
+		res = sMul[0]
 		lastseq = 0
 		// вычисляем следующего претендента
 		for {
-			// mul[0] = ind[0] * im[0]
-			mul[0] += im[0]
-			if mul[0]%in[2] != 0 {
+			// sMul[0] = ind[0] * dMul[0]
+			sMul[0] += dMul[0]
+			if sMul[0] % in[2] != 0 {
 				// претендент не должен делиться на цело на 3й элемент
 				break
 			}
 		}
-	} else if mul[1] <= mul[0] && mul[1] < mul[2] {
-		res = mul[1]
-		ind[1]++
+	} else if sMul[1] <= sMul[0] && sMul[1] < sMul[2] {
+		res = sMul[1]
 		lastseq = 1
 		// вычисляем следующего претендента
 		for {
-			// mul[1] = ind[1] * im[1]
-			mul[1] += im[1]
-			if mul[1]%in[1] != 0 {
+			// sMul[1] = ind[1] * dMul[1]
+			sMul[1] += dMul[1]
+			if sMul[1]%in[1] != 0 {
 				// претендент не должен делиться на цело на 2й элемент
 				break
 			}
 		}
-	} else /*if mul[2] <= mul[0] && mul[2] <= mul[1] */ {
-		res = mul[2]
-		ind[2]++
+	} else /*if sMul[2] <= sMul[0] && sMul[2] <= sMul[1] */ {
+		res = sMul[2]
 		lastseq = 2
 		// вычисляем следующего претендента
 		for {
-			//mul[2] = ind[2] * im[2]
-			mul[2] += im[2]
-			if mul[2]%in[0] != 0 {
+			sMul[2] += dMul[2]
+			if sMul[2]%in[0] != 0 {
 				// претендент не должен делиться на цело на 1й элемент
 				break
 			}
@@ -70,16 +65,6 @@ func Check() bool {
 		return false
 	}
 	return true
-}
-
-func Steps(num int64) int64 {
-	var abc int64 = in[0] * in[1] * in[2]
-	return num/(in[0]*in[1]) + num/(in[0]*in[2]) + num/(in[1]*in[2]) - 3*(num/abc)
-}
-
-// число по количеству шагов c
-func CMax(c int64) int64 {
-	return c * in[0] * in[1] * in[2] / (in[0] + in[1] + in[2] - 3)
 }
 
 func main() {
@@ -106,36 +91,33 @@ func main() {
 		os.Exit(1)
 	}
 	slices.Sort(in)
-	fmt.Println("числа ", in)
+	//fmt.Println("числа ", in)
 	if Check() {
-		mul[0] = in[0] * in[1]
-		mul[1] = in[0] * in[2]
-		mul[2] = in[1] * in[2]
-		im[0] = mul[0]
-		im[1] = mul[1]
-		im[2] = mul[2]
+		dMul[0] = in[0] * in[1]
+		dMul[1] = in[0] * in[2]
+		dMul[2] = in[1] * in[2]
 		lastseq = -1
+		St := in[0]+in[1]+in[2]-3	// количество полезных шагов на период
+		Nt := count / St			// количество полных периодов
+		abc := in[0]*in[1]*in[2]	
+		sMul[0] = dMul[0] + Nt * abc	// числа на конец последнего периода 
+		sMul[1] = dMul[1] + Nt * abc
+		sMul[2] = dMul[2] + Nt * abc
+		//fmt.Printf("Шагов на период %d. Полных периодов %d. Шагов за полных приодов %d\n",St, Nt, St*Nt)
+		//fmt.Println("числа ",sMul)	
 		var i int64
-		for i = 0; i < count; i++ {
+		for i = St*Nt; i < count; i++ {
 			result = NextNum()
 			if result > 1_000_000_000_000_000_000 {
 				result = -1
 				break
 			}
 		}
-		fmt.Println("i ", i, " result ", result)
+		//fmt.Println(result,sMul)
 	} else {
 		result = -1
 	}
-	fmt.Println("итерации", ind, "текущие числа", mul)
-	fmt.Println("последняя пос-ть ", lastseq)
-	Max := CMax(count)
-	sMax := Steps(Max)
-	fmt.Println("максимальное по шагам ", Max, "шагов до числа", sMax)
-	mul[0] = Max / im[0]
-	mul[1] = Max / im[1]
-	mul[1] = Max / im[2]
-	fmt.Println("п-ть по Max ", mul)
+	
 	file, err = os.Create("output.txt")
 	if err != nil {
 		fmt.Printf("Error creating file %v", err)
