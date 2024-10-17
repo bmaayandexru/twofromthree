@@ -12,6 +12,7 @@ var (
 	ind     [3]int64
 	count   int64
 	result  int64
+	lastseq int
 )
 
 func NextNum() int64 {
@@ -21,6 +22,7 @@ func NextNum() int64 {
 	if mul[0] < mul[1] && mul[0] < mul[2] {
 		res = mul[0]
 		ind[0]++
+		lastseq = 0
 		// вычисляем следующего претендента
 		for {
 			// mul[0] = ind[0] * im[0]
@@ -33,6 +35,7 @@ func NextNum() int64 {
 	} else if mul[1] <= mul[0] && mul[1] < mul[2] {
 		res = mul[1]
 		ind[1]++
+		lastseq = 1
 		// вычисляем следующего претендента
 		for {
 			// mul[1] = ind[1] * im[1]
@@ -45,6 +48,7 @@ func NextNum() int64 {
 	} else /*if mul[2] <= mul[0] && mul[2] <= mul[1] */ {
 		res = mul[2]
 		ind[2]++
+		lastseq = 2
 		// вычисляем следующего претендента
 		for {
 			//mul[2] = ind[2] * im[2]
@@ -70,9 +74,10 @@ func Check() bool {
 
 func Steps(num int64) int64 {
 	var abc int64 = in[0] * in[1] * in[2]
-	return num/(in[0]*in[1]) + num/(in[0]*in[2]) + num/(in[1]*in[2]) - 3*num/abc
+	return num/(in[0]*in[1]) + num/(in[0]*in[2]) + num/(in[1]*in[2]) - 3*(num/abc)
 }
 
+// число по количеству шагов c
 func CMax(c int64) int64 {
 	return c * in[0] * in[1] * in[2] / (in[0] + in[1] + in[2] - 3)
 }
@@ -109,6 +114,7 @@ func main() {
 		im[0] = mul[0]
 		im[1] = mul[1]
 		im[2] = mul[2]
+		lastseq = -1
 		var i int64
 		for i = 0; i < count; i++ {
 			result = NextNum()
@@ -122,9 +128,14 @@ func main() {
 		result = -1
 	}
 	fmt.Println("итерации", ind, "текущие числа", mul)
+	fmt.Println("последняя пос-ть ", lastseq)
 	Max := CMax(count)
 	sMax := Steps(Max)
 	fmt.Println("максимальное по шагам ", Max, "шагов до числа", sMax)
+	mul[0] = Max / im[0]
+	mul[1] = Max / im[1]
+	mul[1] = Max / im[2]
+	fmt.Println("п-ть по Max ", mul)
 	file, err = os.Create("output.txt")
 	if err != nil {
 		fmt.Printf("Error creating file %v", err)
