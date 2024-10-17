@@ -9,7 +9,7 @@ import (
 var (
 	in      []int64
 	mul, im [3]int64
-	ind     = [3]int64{1, 1, 1}
+	ind     [3]int64
 	count   int64
 	result  int64
 )
@@ -20,9 +20,9 @@ func NextNum() int64 {
 	var res int64
 	if mul[0] < mul[1] && mul[0] < mul[2] {
 		res = mul[0]
+		ind[0]++
 		// вычисляем следующего претендента
 		for {
-			//ind[0]++
 			// mul[0] = ind[0] * im[0]
 			mul[0] += im[0]
 			if mul[0]%in[2] != 0 {
@@ -32,9 +32,9 @@ func NextNum() int64 {
 		}
 	} else if mul[1] <= mul[0] && mul[1] < mul[2] {
 		res = mul[1]
+		ind[1]++
 		// вычисляем следующего претендента
 		for {
-			//ind[1]++
 			// mul[1] = ind[1] * im[1]
 			mul[1] += im[1]
 			if mul[1]%in[1] != 0 {
@@ -44,9 +44,9 @@ func NextNum() int64 {
 		}
 	} else /*if mul[2] <= mul[0] && mul[2] <= mul[1] */ {
 		res = mul[2]
+		ind[2]++
 		// вычисляем следующего претендента
 		for {
-			//ind[2]++
 			//mul[2] = ind[2] * im[2]
 			mul[2] += im[2]
 			if mul[2]%in[0] != 0 {
@@ -66,6 +66,15 @@ func Check() bool {
 		return false
 	}
 	return true
+}
+
+func Steps(num int64) int64 {
+	var abc int64 = in[0] * in[1] * in[2]
+	return num/(in[0]*in[1]) + num/(in[0]*in[2]) + num/(in[1]*in[2]) - 3*num/abc
+}
+
+func CMax(c int64) int64 {
+	return c * in[0] * in[1] * in[2] / (in[0] + in[1] + in[2] - 3)
 }
 
 func main() {
@@ -92,7 +101,7 @@ func main() {
 		os.Exit(1)
 	}
 	slices.Sort(in)
-	fmt.Println(in)
+	fmt.Println("числа ", in)
 	if Check() {
 		mul[0] = in[0] * in[1]
 		mul[1] = in[0] * in[2]
@@ -103,20 +112,19 @@ func main() {
 		var i int64
 		for i = 0; i < count; i++ {
 			result = NextNum()
-			/*
-				if i%100_000_000 == 0 {
-					fmt.Println(i, result)
-				}
-			*/
-			//result *= count
 			if result > 1_000_000_000_000_000_000 {
 				result = -1
 				break
 			}
 		}
+		fmt.Println("i ", i, " result ", result)
 	} else {
 		result = -1
 	}
+	fmt.Println("итерации", ind, "текущие числа", mul)
+	Max := CMax(count)
+	sMax := Steps(Max)
+	fmt.Println("максимальное по шагам ", Max, "шагов до числа", sMax)
 	file, err = os.Create("output.txt")
 	if err != nil {
 		fmt.Printf("Error creating file %v", err)
